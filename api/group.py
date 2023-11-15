@@ -1,13 +1,11 @@
-import datetime
-import locale
-from schedule import Schedule
+from api.schedule import Lesson
 
 
 class Group:
     def __init__(self, id, name, schedule={}):
         self.id = id
         self.name = name
-        self.schedule = {
+        self.lessons = {
             "Monday": [],
             "Tuesday": [],
             "Wednesday": [],
@@ -16,5 +14,5 @@ class Group:
             "Saturday": [],
         }
 
-    def add_schedule(self, date, lessons: Schedule):
-        self.schedule[date.strftime("%A")].append(lessons)
+    def add_schedule(self, date, lessons: Lesson):
+        self.lessons[date.strftime("%A")].append(lessons)

@@ -1,11 +1,11 @@
 import requests
-from url import Links
-from group import Group
-from schedule import Schedule
+from api.url import Links
+from api.group import Group
+from api.schedule import Lesson
 import datetime
 
 
-class Dispatcher:
+class Dispatcher_DSTU:
     _groups = []
     _schedule = []
 
@@ -37,7 +37,7 @@ class Dispatcher:
         for discipline in schedule_group.json()["data"]["rasp"]:
             group.add_schedule(
                 datetime.datetime.strptime(discipline["дата"], "%Y-%m-%dT%H:%M:%S"),
-                Schedule(
+                Lesson(
                     discipline["код"],
                     discipline["дисциплина"],
                     discipline["аудитория"],
@@ -74,10 +74,10 @@ class Dispatcher:
             print("Произошла ошибка при выполнении запроса.")
 
 
-# Как дергать методы:
-disp = (
-    Dispatcher()
-)  # Создаем класс диспетчера ответственный за отправку запросов и сборку всех данных
-disp.get_groups()  # Получаем все группы. Возвращает список. Обязательно деруть метод один раз, чтобы получить все группы
-# перед тем как получить расписание. Можно по идеи добавить его в метод получения расписания
-print(disp.get_schedule("ИСП9-К22"))  # Получаем группу вместе с ее расписанием
+# # Как дергать методы:
+# disp = (
+#     Dispatcher_DSTU()
+# )  # Создаем класс диспетчера ответственный за отправку запросов и сборку всех данных
+# disp.get_groups()  # Получаем все группы. Возвращает список. Обязательно деруть метод один раз, чтобы получить все группы
+# # перед тем как получить расписание. Можно по идеи добавить его в метод получения расписания
+# print(disp.get_schedule("ИСП9-К22"))  # Получаем группу вместе с ее расписанием

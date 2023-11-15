@@ -1,7 +1,7 @@
 import datetime
 
 
-class Schedule:
+class Lesson:
     def __init__(
         self,
         id: int,
