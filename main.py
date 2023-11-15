@@ -9,7 +9,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
 logging.basicConfig(level=logging.INFO)
-bot = Bot("TOKEN")
+bot = Bot("Token")
 dp = Dispatcher()
 dstu_api = Dispatcher_DSTU()
 
@@ -18,28 +18,16 @@ schedule = openpyxl.open("schedule.xlsx", read_only=True)
 sheet, group = None, None
 
 
-def collect_schedule():
-    dstu_api.get_groups()
-    stroke = ""
-    # Получение данных из переменной schedule
-    for day, lessons in dstu_api.get_schedule("ИСП9-К22").lessons.items():
-        if lessons is not None:
-            stroke += f"День: {day} \n "
-            for lesson in lessons:
-                stroke += f"\n{lesson.start}:{lesson.end} | {lesson.name}\n{lesson.teacher}\n Аудитория:{lesson.aud}\n\n"
-    return stroke
-
-
 @dp.message(Command("start"))
 async def message_start(message: types.Message):
     buttons = [
         [
-            types.InlineKeyboardButton(text="1 курс", callback_data="course_k1"),
-            types.InlineKeyboardButton(text="2 курс", callback_data="course_k2"),
+            types.InlineKeyboardButton(text="1 курс", callback_data="course_1"),
+            types.InlineKeyboardButton(text="2 курс", callback_data="course_2"),
         ],
         [
-            types.InlineKeyboardButton(text="3 курс", callback_data="course_k3"),
-            types.InlineKeyboardButton(text="4 курс", callback_data="course_k4"),
+            types.InlineKeyboardButton(text="3 курс", callback_data="course_3"),
+            types.InlineKeyboardButton(text="4 курс", callback_data="course_4"),
         ],
     ]
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -52,31 +40,39 @@ async def message_start(message: types.Message):
 
 @dp.callback_query(F.data.startswith("course_"))
 async def callbacks_course(callback: types.CallbackQuery):
-    global sheet, group
+    # global sheet, group
+    groups = dstu_api.find_groups_by_course(callback.data.split("_")[1])
 
-    if callback.data.split("_")[1] == "k1":
-        sheet = schedule.worksheets[0]
-        groups = 24
-    elif callback.data.split("_")[1] == "k2":
-        sheet = schedule.worksheets[1]
-        groups = 20
-    elif callback.data.split("_")[1] == "k3":
-        sheet = schedule.worksheets[2]
-        groups = 19
-    elif callback.data.split("_")[1] == "k4":
-        sheet = schedule.worksheets[3]
-        groups = 15
-    else:
-        groups = 3
+    # if callback.data.split("_")[1] == "k1":
+    #     sheet = schedule.worksheets[0]
+    #     groups = 24
+    # elif callback.data.split("_")[1] == "k2":
+    #     sheet = schedule.worksheets[1]
+    #     groups = 20
+    # elif callback.data.split("_")[1] == "k3":
+    #     sheet = schedule.worksheets[2]
+    #     groups = 19
+    # elif callback.data.split("_")[1] == "k4":
+    #     sheet = schedule.worksheets[3]
+    #     groups = 15
+    # else:
+    #     groups = 3
 
     keyboard = InlineKeyboardBuilder()
 
-    for row in range(2, groups):
+    for group in groups:
         keyboard.add(
             types.InlineKeyboardButton(
-                text=f"{sheet[6][row].value}", callback_data=f"group_{row - 1}"
+                text=f"{group.name}", callback_data=f"group_{group.id}"
             )
         )
+
+    # for row in range(2, groups):
+    #     keyboard.add(
+    #         types.InlineKeyboardButton(
+    #             text=f"{sheet[6][row].value}", callback_data=f"group_{row - 1}"
+    #         )
+    #     )
 
     keyboard.adjust(2)
     await callback.message.edit_text(
@@ -87,13 +83,16 @@ async def callbacks_course(callback: types.CallbackQuery):
 
 @dp.callback_query(F.data.startswith("group_"))
 async def callbacks_groups(callback: types.CallbackQuery):
-    global group
+    schedule = dstu_api.find_schedule_by_group(int(callback.data.split("_")[1]))
 
-    group = int(callback.data.split("_")[1]) + 1
-    await callback.message.edit_text(
-        f"Для того, чтобы изменить группу повторно используйте каманду /start. "
-        f"Сейчас у вас выбрана группа {sheet[6][group].value}"
-    )
+    await callback.message.edit_text(schedule)
+    # global group
+
+    # group = int(callback.data.split("_")[1]) + 1
+    # await callback.message.edit_text(
+    #     f"Для того, чтобы изменить группу повторно используйте каманду /start. "
+    #     f"Сейчас у вас выбрана группа {sheet[6][group].value}"
+    # )
 
 
 def schedule_(day_name, day):

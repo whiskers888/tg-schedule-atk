@@ -2,9 +2,10 @@ from api.schedule import Lesson
 
 
 class Group:
-    def __init__(self, id, name, schedule={}):
+    def __init__(self, id, name, course, schedule={}):
         self.id = id
         self.name = name
+        self.course = course
         self.lessons = {
             "Monday": [],
             "Tuesday": [],
