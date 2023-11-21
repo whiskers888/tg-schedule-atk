@@ -3,14 +3,17 @@ import logging
 import openpyxl
 
 from api.api import Dispatcher_DSTU
+from settings import Settings
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters.command import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
 logging.basicConfig(level=logging.INFO)
-bot = Bot("Token")
+bot = Bot("6670335479:AAHYxHgc8SsPAhzJUxHyL9WtWrOZ67GoAyo")
 dp = Dispatcher()
+
+settings = Settings()
 dstu_api = Dispatcher_DSTU()
 
 schedule = openpyxl.open("schedule.xlsx", read_only=True)
@@ -83,16 +86,16 @@ async def callbacks_course(callback: types.CallbackQuery):
 
 @dp.callback_query(F.data.startswith("group_"))
 async def callbacks_groups(callback: types.CallbackQuery):
-    schedule = dstu_api.find_schedule_by_group(int(callback.data.split("_")[1]))
-
-    await callback.message.edit_text(schedule)
+    group_id = int(callback.data.split("_")[1])
+    # schedule = dstu_api.find_schedule_by_group(group_id)
+    settings.attach_group(group_id)
+    # await callback.message.edit_text(schedule)
     # global group
-
     # group = int(callback.data.split("_")[1]) + 1
-    # await callback.message.edit_text(
-    #     f"Для того, чтобы изменить группу повторно используйте каманду /start. "
-    #     f"Сейчас у вас выбрана группа {sheet[6][group].value}"
-    # )
+    await callback.message.edit_text(
+        f"Для того, чтобы изменить группу повторно используйте каманду /start. "
+        f"Сейчас у вас выбрана группа {group_id}"
+    )
 
 
 def schedule_(day_name, day):
@@ -131,7 +134,8 @@ async def message_time(message: types.Message):
 
 @dp.message(Command("monday"))
 async def monday(message: types.Message):
-    await message.answer(schedule_("Понедельник:", [7, 14]))
+    await message.answer(dstu_api.find_group_schedule_by_day(settings.group, "Monday"))
+    # await message.answer(schedule_("Понедельник:", [7, 14]))
 
 
 @dp.message(Command("tuesday"))
