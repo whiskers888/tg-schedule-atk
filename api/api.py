@@ -25,10 +25,10 @@ class Dispatcher_DSTU:
         group = self._find_group(group_id)
         return self._get_schedule(group)
 
-    def find_group_schedule_by_day(self, group_id: int, weekday: str):
+    def find_group_schedule_by_day(self, group_id: int, _weekday: str, weekday: str):
         group = self._find_group(group_id)
         self._get_schedule(group)
-        return self._schedule_to_str(group, weekday)
+        return self._schedule_to_str(group, _weekday, weekday)
 
     # Функция собирает группы
     def _collect_groups(self, raspGroupList: dict):
@@ -70,21 +70,24 @@ class Dispatcher_DSTU:
                 ),
             )
         stroke = ""
-        return self._schedule_to_str(group, "all")
+        return self._schedule_to_str(group, "all", "")
 
-    def _schedule_to_str(self, group: Group, weekday):
+    def _schedule_to_str(self, group: Group, _weekday, weekday):
         # Получение данных из переменной schedule
 
-        stroke = f"День: {weekday} \n\n"
+        stroke = f"День: {_weekday if _weekday == 'all' else weekday} \n\n"
         for day, lessons in group.lessons.items():
             if lessons is not None:
-                if weekday == day:
+                if _weekday == day:
                     i = 1
                     for lesson in lessons:
-                        stroke += (f"{'_' * 50}\n"
+                        stroke += (f"{'_' * 40}\n"
                                    f"{lesson.start} - {lesson.end} | {lesson.name}\n"
                                    f"{lesson.teacher}       Аудитория:{lesson.aud}\n")
                         i += 1
+                elif _weekday == 'all':
+                    for lesson in lessons:
+                        stroke += f"\n{lesson.start}:{lesson.end} | {lesson.name}\n{lesson.teacher}\n Аудитория:{lesson.aud}\n\n"
         return stroke
 
     # Функция отдает расписание группы по ее наименованию
