@@ -5,6 +5,8 @@ from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters.command import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from datetime import datetime, timedelta
+
 from api.api import Dispatcher_DSTU
 
 logging.basicConfig(level=logging.INFO)
@@ -14,7 +16,37 @@ dp = Dispatcher()
 disp = Dispatcher_DSTU()
 
 group_id = None
-user = {}
+users = {}
+
+
+async def auto_sending(_day, day):
+    for key, value in users.items():
+        if value['auto_sending'] == 'off' or None:
+            pass
+        elif value['auto_sending'] == 'on':
+            await bot.send_message(chat_id=key, text=_schedule(value['group_id'], _day, day))
+
+        print("рассылка пошла")
+
+
+async def schedule_auto_sending():
+    while True:
+        now = datetime.now()
+
+        if now.weekday() == 7 and now.hour == 20 and now.minute == 0:
+            await auto_sending('monday', "Понедельник")
+        if now.weekday() == 1 and now.hour == 20 and now.minute == 0:
+            await auto_sending('tuesday', "Вторник")
+        if now.weekday() == 2 and now.hour == 20 and now.minute == 0:
+            await auto_sending('wednesday', "Среда")
+        if now.weekday() == 3 and now.hour == 20 and now.minute == 0:
+            await auto_sending('thursday', "Четверг")
+        if now.weekday() == 4 and now.hour == 20 and now.minute == 0:
+            await auto_sending('friday', "Пятница")
+        if now.weekday() == 5 and now.hour == 20 and now.minute == 0:
+            await auto_sending('saturday', "Суббота")
+
+        await asyncio.sleep(60)  # Пауза в 60 секунд перед проверкой следующего времени
 
 
 @dp.message(Command("start"))
@@ -61,15 +93,36 @@ async def callbacks_course(callback: types.CallbackQuery):
 async def callbacks_groups(callback: types.CallbackQuery):
     global group_id
     group_id = int(callback.data.split("_")[1])
-    user[callback.from_user.id] = group_id
+    users[callback.from_user.id] = {'group_id': group_id, 'auto_sending': None}
     await callback.message.edit_text(f'Для того, чтобы изменить группу повторно используйте каманду /start. '
                                      f'Сейчас у вас выбрана группа {disp._find_group(group_id).name}')
+
+    buttons = [
+        [
+            types.InlineKeyboardButton(text="да", callback_data="auto_sending_on"),
+            types.InlineKeyboardButton(text="нет", callback_data="auto_sending_off")
+        ]
+    ]
+
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    await callback.message.answer("Хотите включить автоматическую рассылку расписания?", reply_markup=keyboard)
+
+
+@dp.callback_query(F.data.startswith("auto_sending_"))
+async def callbacks_groups(callback: types.CallbackQuery):
+    if callback.data.split("_")[2] == "on":
+        users[callback.from_user.id]['auto_sending'] = 'on'
+        await callback.message.edit_text("Рассылка успешно включина")
+    elif callback.data.split("_")[2] == "off":
+        users[callback.from_user.id]['auto_sending'] = 'off'
+        await callback.message.edit_text("Рассылка успешно выключина")
 
 
 def _schedule(user_id, _weekday, weekday):
     try:
-        if user[user_id] is not None:
-            return disp.find_group_schedule_by_day(user[user_id], _weekday, weekday)
+        if users[user_id]['group_id'] is not None:
+            return disp.find_group_schedule_by_day(users[user_id]['group_id'], _weekday, weekday)
     except KeyError:
         return ("Сначала пожалуйста выберете группу, "
                 "для этого используйте комманду /start")
