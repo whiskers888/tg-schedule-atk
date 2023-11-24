@@ -5,12 +5,14 @@ from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters.command import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from api.api import Dispatcher_DSTU
 
+from threading import Thread
+
 logging.basicConfig(level=logging.INFO)
-bot = Bot("1068856809:AAE73f6oMnlgzqBMnEkOA0ck65s575119gQ")
+bot = Bot("TOKIN")
 dp = Dispatcher()
 
 disp = Dispatcher_DSTU()
@@ -24,29 +26,29 @@ async def auto_sending(_day, day):
         if value['auto_sending'] == 'off' or None:
             pass
         elif value['auto_sending'] == 'on':
-            await bot.send_message(chat_id=key, text=_schedule(value['group_id'], _day, day))
-
-        print("рассылка пошла")
+            await bot.send_message(chat_id=key, text=_schedule(key, _day, day))
 
 
 async def schedule_auto_sending():
     while True:
         now = datetime.now()
 
-        if now.weekday() == 7 and now.hour == 20 and now.minute == 0:
+        if now.weekday() == 6 and now.hour == 20 and now.minute == 0:
             await auto_sending('monday', "Понедельник")
-        if now.weekday() == 1 and now.hour == 20 and now.minute == 0:
+        if now.weekday() == 0 and now.hour == 20 and now.minute == 0:
             await auto_sending('tuesday', "Вторник")
-        if now.weekday() == 2 and now.hour == 20 and now.minute == 0:
+        if now.weekday() == 1 and now.hour == 20 and now.minute == 0:
             await auto_sending('wednesday', "Среда")
-        if now.weekday() == 3 and now.hour == 20 and now.minute == 0:
+        if now.weekday() == 2 and now.hour == 20 and now.minute == 0:
             await auto_sending('thursday', "Четверг")
-        if now.weekday() == 4 and now.hour == 20 and now.minute == 0:
+        if now.weekday() == 3 and now.hour == 20 and now.minute == 0:
             await auto_sending('friday', "Пятница")
-        if now.weekday() == 5 and now.hour == 20 and now.minute == 0:
+        if now.weekday() == 4 and now.hour == 20 and now.minute == 0:
             await auto_sending('saturday', "Суббота")
+            print("!!!")
 
-        await asyncio.sleep(60)  # Пауза в 60 секунд перед проверкой следующего времени
+        await asyncio.sleep(10)
+        print("!!")
 
 
 @dp.message(Command("start"))
@@ -161,5 +163,21 @@ async def monday(message: types.Message):
 async def main():
     await dp.start_polling(bot)
 
-if __name__ == "__main__":
+
+def start_bot():
     asyncio.run(main())
+
+
+def start_schedule_auto_sending():
+    asyncio.run(schedule_auto_sending())
+
+
+if __name__ == "__main__":
+    thread1 = Thread(target=start_bot)
+    thread2 = Thread(target=start_schedule_auto_sending)
+
+    thread1.start()
+    thread2.start()
+
+    thread1.join()
+    thread2.join()
