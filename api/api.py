@@ -81,11 +81,13 @@ class Dispatcher_DSTU:
                 if _weekday == day:
                     i = 1
                     for lesson in lessons:
-                        stroke += (f"{'_' * 40}\n"
-                                   f"{lesson.start} - {lesson.end} | {lesson.name}\n"
-                                   f"{lesson.teacher}       Аудитория:{lesson.aud}\n")
+                        stroke += (
+                            f"{'_' * 40}\n"
+                            f"{lesson.start} - {lesson.end} | {lesson.name}\n"
+                            f"{lesson.teacher}       Аудитория:{lesson.aud}\n"
+                        )
                         i += 1
-                elif _weekday == 'all':
+                elif _weekday == "all":
                     for lesson in lessons:
                         stroke += f"\n{lesson.start}:{lesson.end} | {lesson.name}\n{lesson.teacher}\n Аудитория:{lesson.aud}\n\n"
         return stroke
